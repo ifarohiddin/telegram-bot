@@ -264,8 +264,8 @@ def search_by_trek_code(message):
     
     if not codes:
         error_msg = {
-            'uz': "Iltimos, kamida bitta trek kodini kiriting.",
-            'ru': "Пожалуйста, введите хотя бы один трек-код."
+            'uz': "Iltimos, trek kodini kiriting.",
+            'ru': "Пожалуйста, введите трек-код."
         }
         bot.reply_to(message, error_msg[lang], reply_markup=code_input_menu(user_id))
         bot.register_next_step_handler(message, search_by_trek_code)
@@ -431,16 +431,16 @@ def handle_message(message):
         if message.text == by_trek_code_text:
             user_state[user_id] = 'search_by_trek_code'
             prompt_msg = {
-                'uz': "Trek kodni kiriting (masalan, JTS341590726333):",
-                'ru': "Введите трек-код (например, JTS341590726333):"
+                'uz': "Trek kodni kiriting :",
+                'ru': "Введите трек-код :"
             }
             bot.reply_to(message, prompt_msg[lang], reply_markup=code_input_menu(user_id))
             bot.register_next_step_handler(message, search_by_trek_code)
         elif message.text == by_customer_code_text:
             user_state[user_id] = 'search_by_customer_code'
             prompt_msg = {
-                'uz': "Mijoz kodini kiriting (masalan, ss, gg, akb):",
-                'ru': "Введите код клиента (например, ss, gg, akb):"
+                'uz': "Mijoz kodini kiriting :",
+                'ru': "Введите код клиента :"
             }
             bot.reply_to(message, prompt_msg[lang], reply_markup=code_input_menu(user_id))
             bot.register_next_step_handler(message, search_by_customer_code)
