@@ -2,12 +2,17 @@ import telebot
 import pandas as pd
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 import os
+import logging
 from uuid import uuid4
+
+# Loglashni sozlash
+logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 TOKEN = '7110604770:AAEm7rtzfTlAexb55WdJE6S6OEtpC3VazXU'
 bot = telebot.TeleBot(TOKEN)
 
 EXCEL_FILE = 'products.xlsx'
+CSV_FILE = 'products.csv'
 
 SUCCESS_STICKER = 'CAACAgIAAxkBAAIBG2YJ5qGf...' 
 ERROR_STICKER = 'CAACAgIAAxkBAAIBH2YJ5qH...'  
@@ -17,19 +22,34 @@ user_languages = {}
 # Foydalanuvchi holatini saqlash uchun lug'at (qaysi bo'limda ekanligi)
 user_state = {}
 
-# Excel faylni o'qish
+# Excel yoki CSV faylni o'qish
 def read_excel():
     try:
+        # Agar CSV fayl mavjud bo'lsa, uni o'qish
+        if os.path.exists(CSV_FILE):
+            logging.info(f"{CSV_FILE} fayli topildi, o'qilmoqda...")
+            df = pd.read_csv(CSV_FILE, encoding='utf-8')
+            logging.info("CSV fayl muvaffaqiyatli o'qildi.")
+            print("Ustun nomlari (CSV):", df.columns.tolist())  # Debugging uchun
+            return df
+
+        # Agar CSV fayl mavjud bo'lmasa, Excel faylini o'qib, CSV ga aylantirish
         if os.path.exists(EXCEL_FILE):
+            logging.info(f"{EXCEL_FILE} fayli topildi, CSV ga aylantirilmoqda...")
             df = pd.read_excel(EXCEL_FILE)
-            print("Ustun nomlari:", df.columns.tolist())  # Debugging uchun
-            print("Trek kodlari (birinchi 5 ta):", df['Shipment Tracking Code'].head().tolist())  # Trek kodlarini ko'rish
+            # Excel faylini CSV ga saqlash
+            df.to_csv(CSV_FILE, index=False, encoding='utf-8')
+            logging.info(f"{EXCEL_FILE} fayli {CSV_FILE} ga aylantirildi.")
+            print("Ustun nomlari (Excel -> CSV):", df.columns.tolist())  # Debugging uchun
             return df
         else:
+            logging.error(f"{EXCEL_FILE} fayli topilmadi.")
             print(f"{EXCEL_FILE} fayli topilmadi.")
             return pd.DataFrame(columns=['Shipment Tracking Code', 'Shipping Name', 'Package Number', 'Weight/KG', 'Quantity', 'Flight', 'Customer code'])
+
     except Exception as e:
-        print(f"Excel faylni o'qishda xatolik: {e}")
+        logging.error(f"Faylni o'qishda xatolik: {str(e)}")
+        print(f"Faylni o'qishda xatolik: {e}")
         return pd.DataFrame(columns=['Shipment Tracking Code', 'Shipping Name', 'Package Number', 'Weight/KG', 'Quantity', 'Flight', 'Customer code'])
 
 # Ma'lumotlarni trek kodi bo'yicha qidirish
@@ -46,6 +66,7 @@ def search_product_by_trek_code(code):
             return result[['Shipping Name', 'Package Number', 'Weight/KG', 'Quantity', 'Flight', 'Customer code']].to_dict('records')
         return None
     else:
+        logging.error("Xatolik: 'Shipment Tracking Code' ustuni topilmadi.")
         print("Xatolik: 'Shipment Tracking Code' ustuni topilmadi.")
         return None
 
@@ -63,6 +84,7 @@ def search_product_by_customer_code(code):
             return result[['Shipment Tracking Code', 'Shipping Name', 'Package Number', 'Weight/KG', 'Quantity', 'Flight', 'Customer code']].to_dict('records')
         return None
     else:
+        logging.error("Xatolik: 'Customer code' ustuni topilmadi.")
         print("Xatolik: 'Customer code' ustuni topilmadi.")
         return None
 
@@ -445,6 +467,7 @@ if __name__ == "__main__":
     try:
         bot.polling(none_stop=True)
     except Exception as e:
+        logging.error(f"Bot pollingda xatolik: {str(e)}")
         print(f"Xatolik yuz berdi: {e}")
         import time
         time.sleep(5)
