@@ -4,11 +4,20 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 import os
 import logging
 from uuid import uuid4
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Loglashni sozlash
 logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-TOKEN = '7110604770:AAEm7rtzfTlAexb55WdJE6S6OEtpC3VazXU'
+# Get TOKEN from environment variables
+TOKEN = os.getenv('TOKEN')
+if not TOKEN:
+    logging.error("TOKEN environment variable not set")
+    raise ValueError("TOKEN environment variable not set")
+
 bot = telebot.TeleBot(TOKEN)
 
 EXCEL_FILE = 'products.xlsx'
